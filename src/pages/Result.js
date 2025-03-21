@@ -1,84 +1,76 @@
-import { StatusBar } from 'expo-status-bar';
-import { ImageBackground, StyleSheet, Text } from 'react-native';
+import { useState } from 'react';
+
+import { StyleSheet, ImageBackground, FlatList, Dimensions, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
+
 import API_KEY from '../API_KEY';
 import axios from 'axios';
+import Header from '../components/Header';
+
+const { width, height } = Dimensions.get("window")
+const IMAGE_WIDTH = width
 
 
-export default function Result({ route }) {
+export default function Result({ route, navigation }) {
   const escolha = route.params.escolha;
-  const [textoPesquisa, setTextoPesquisa] = useState("")
-  const link = `api.giphy.com/v1/${escolha}/search?api_key=${API_KEY}&q=${textoPesquisa ? textoPesquisa : "?"}&limit=10&offset=0&rating=g&lang=pt&bundle=messaging_noclips`;
-  const [gifUrls, setGifUrls] = useState([]);
+  const link = `http://api.giphy.com/v1/${escolha}/search`
 
-  const pesquisar = async () => {
-    try{
-      const response = await axios.get(link);
-      const urls = response.data.data.map(gif => gif.images.original.url);
-      setGifUrls(urls);
-    }catch(erro){
-      console.error('Erro ao busca GIF: ', erro);
+  const [text, setText] = useState('')
+  const [dados, setDados] = useState([])
+
+  const solicitarDados = async (text) => {
+    try {
+      const resultado = await axios.get(link, {
+        params: {
+          api_key: API_KEY,
+          q: text
+        }
+      })
+
+      setDados(resultado.data.data)
+    } catch (err) {
+      console.log(err)
     }
   }
 
   return (
     <ImageBackground
       source={require('../../assets/BG.png')}
-      style={styles.background}
+      style={styles.container}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={{width:'100%', flexDirection:'row', justifyContent:'space-between', padding:5}}>
-          <Ionicons name='chevron-back' size={40} color='white' onPress={ () => { navigation.goBack() } } />
-          <TextInput 
-            placeholder='Digite sua pesquisa' 
-            style={styles.input} 
-            autoCapitalize='none'
-            value={textoPesquisa}
-            onChangeText={setTextoPesquisa}
-            returnKeyType="done"
-          />
-          <Ionicons name='search' size={40} color='white' onPress={pesquisar}/>
-        </View>
 
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer} 
-          showsVerticalScrollIndicator={false}
-        >
-          {gifUrls.map((url, index) => (
-            <Image
-              key={index}
-              source={{ uri: url }}
-              style={styles.gif}
-              resizeMode='contain'
-            />
-          ))}
+      <Header
+        navigation={navigation}
+        text={text}
+        setText={setText}
+        solicitarDados={solicitarDados}
+      />
 
-          <StatusBar style="light" />
-        </ScrollView>
-      </SafeAreaView>
+      <FlatList
+        data={dados}
+        numColumns={2}
+        renderItem={({ item }) => {
+          return (
+            <TouchableOpacity onPress={() => navigation.navigate("Details", {item:item})}>
+              <Image
+                style={styles.image}
+                source={{ url: item.images.preview_gif.url }}
+              />
+            </TouchableOpacity>
+          )
+        }}
+      />
+
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
   container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex: 1
   },
-  scrollContainer: {
-    alignItems: 'center',
-  },
-  gif: {
-    width: 300,
-    height: 300,
-    marginTop: 20,
-  },
-  input: {
-    backgroundColor: 'white',
-    width: '70%',
-    borderRadius: 15
+  image: {
+    width: IMAGE_WIDTH / 2,
+    height: IMAGE_WIDTH / 2
   }
 });
