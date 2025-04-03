@@ -2,9 +2,9 @@ import { useState } from 'react';
 
 import { StyleSheet, ImageBackground,FlatList, Dimensions, TouchableOpacity, View, Text, Keyboard} from 'react-native';
 import { Image } from 'expo-image';
-import {Ionicons} from "react-native-vector-icons";
- import TextInfo from '../components/TextInfo';
- import Loading from '../components/Loading';
+import TextInfo from '../components/TextInfo';
+import Loading from '../components/Loading';
+import Error from '../components/Error';
 
 import API_KEY from '../API_KEY';
 import axios from 'axios';
@@ -22,6 +22,7 @@ export default function Result({ route, navigation }) {
   const [dados, setDados] = useState([]);
   const [showMessage,setShowMessage] = useState(true)
   const [isLoading,setIsLoading] = useState(false)
+  const [showError,setShowError] = useState(false)
 
   const solicitarDados = async (text) => {
     Keyboard.dismiss()
@@ -38,6 +39,9 @@ export default function Result({ route, navigation }) {
       setDados(resultado.data.data)
     } catch (err) {
       console.log(err);
+      setIsLoading(false)
+      setShowMessage(false)
+      setShowError(true)
     }
   }
 
@@ -62,6 +66,7 @@ export default function Result({ route, navigation }) {
           <>
             <TextInfo showMessage={showMessage}/>
             <Loading isLoading={isLoading}/>
+            <Error showError={showError}/>
           </>
         }
         renderItem={({ item }) => {
