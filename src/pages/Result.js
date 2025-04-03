@@ -1,24 +1,31 @@
 import { useState } from 'react';
 
-import { StyleSheet, ImageBackground, FlatList, Dimensions, TouchableOpacity } from 'react-native';
+import { StyleSheet, ImageBackground,FlatList, Dimensions, TouchableOpacity, View, Text, Keyboard} from 'react-native';
 import { Image } from 'expo-image';
+import {Ionicons} from "react-native-vector-icons";
+ import TextInfo from '../components/TextInfo';
+ import Loading from '../components/Loading';
 
 import API_KEY from '../API_KEY';
 import axios from 'axios';
 import Header from '../components/Header';
 
-const { width, height } = Dimensions.get("window")
-const IMAGE_WIDTH = width
+const{width}=Dimensions.get("window")
+const image_width = width;
 
 
 export default function Result({ route, navigation }) {
   const escolha = route.params.escolha;
-  const link = `http://api.giphy.com/v1/${escolha}/search`
+  const link = `http://api.giphy.com/v1/${escolha}/search`;
 
-  const [text, setText] = useState('')
-  const [dados, setDados] = useState([])
+  const [text, setText] = useState('');
+  const [dados, setDados] = useState([]);
+  const [showMessage,setShowMessage] = useState(true)
+  const [isLoading,setIsLoading] = useState(false)
 
   const solicitarDados = async (text) => {
+    Keyboard.dismiss()
+    setIsLoading(true)
     try {
       const resultado = await axios.get(link, {
         params: {
@@ -26,10 +33,11 @@ export default function Result({ route, navigation }) {
           q: text
         }
       })
-
+      setShowMessage(false)     
+      setIsLoading(false) 
       setDados(resultado.data.data)
     } catch (err) {
-      console.log(err)
+      console.log(err);
     }
   }
 
@@ -44,17 +52,24 @@ export default function Result({ route, navigation }) {
         text={text}
         setText={setText}
         solicitarDados={solicitarDados}
+        setShowMessage={setShowMessage}
       />
 
       <FlatList
         data={dados}
         numColumns={2}
+        ListHeaderComponent={
+          <>
+            <TextInfo showMessage={showMessage}/>
+            <Loading isLoading={isLoading}/>
+          </>
+        }
         renderItem={({ item }) => {
           return (
             <TouchableOpacity onPress={() => navigation.navigate("Details", {item:item})}>
               <Image
                 style={styles.image}
-                source={{ url: item.images.preview_gif.url }}
+                source={{ uri: item.images.preview_gif.url }}
               />
             </TouchableOpacity>
           )
@@ -70,7 +85,9 @@ const styles = StyleSheet.create({
     flex: 1
   },
   image: {
-    width: IMAGE_WIDTH / 2,
-    height: IMAGE_WIDTH / 2
+    width: image_width/2.3,
+    height: image_width/2.3,
+    margin:image_width*0.03,
+    borderRadius:15
   }
 });

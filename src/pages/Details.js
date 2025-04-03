@@ -1,29 +1,32 @@
-import { StyleSheet, ImageBackground, Text, View, Image } from "react-native"
+import { StyleSheet, ImageBackground, Text, View, Image, Linking, SafeAreaView, TouchableOpacity } from "react-native"
 import { Ionicons } from 'react-native-vector-icons';
 
 export default function Details({ route, navigation }) {
-    const dados = route.params.item;
+    const dados = route.params.item
 
     return (
         <ImageBackground
             source={require("../../assets/BG.png")}
             style={styles.container}
         >
-            <View style={styles.header}>
+            <SafeAreaView style={styles.header}>
                 <Ionicons name="chevron-back" size={40} color="white" onPress={() => navigation.goBack()} />
                 <Text style={{ fontSize: 30, color: "white" }}>Detalhes</Text>
-            </View>
+            </SafeAreaView>
 
             <View style={styles.imageContainer}>
-                <Image
-                    style={{ flex: 1 }}
-                    source={{ url: dados.images.original.url }}
-                />
+                <TouchableOpacity style={{ flex: 1 }} onPress={() => Linking.openURL(dados.images.original.url)}>
+                    <Image
+                        style={{ flex: 1 }}
+                        source={{ url: dados.images.original.url }}
+                    />
+                </TouchableOpacity>
             </View>
 
             <View>
-                <Text style={{fontSize: 16, color: "white"}}>{dados.title}</Text>
-                <Ionicons name="globe" size={40} color="white"/>
+                <TouchableOpacity onPress={() => Linking.openURL(dados.images.original.url)}>
+                    <Ionicons name="globe" size={40} color="white" />
+                </TouchableOpacity>
             </View>
 
         </ImageBackground>
@@ -42,6 +45,7 @@ const styles = StyleSheet.create({
     },
     imageContainer: {
         width: "100%",
-        height: "50%"
+        height: "50%",
+        backgroundColor: 'grey'
     }
 });
